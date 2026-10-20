@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Root to Root · Woodshed</title>
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#E9ECE8; --surface:#F6F7F4; --ink:#1A1F1D; --muted:#58625D; --line:#CDD3CE;
+  --btn:#1A1F1D; --btn-ink:#F6F7F4;
+  --up:#F2B134; --down:#4FC1B5; --up-ink:#8A5E00; --down-ink:#16726A;
+  --board:#3A2820; --board-edge:#24170F; --fret:#C3C8C4; --string:#E6DFCF; --inlay:#EAE3D4;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121614; --surface:#1A201D; --ink:#E4E8E4; --muted:#96A09B; --line:#2C3431;
+    --btn:#E4E8E4; --btn-ink:#121614; --up-ink:#F2B134; --down-ink:#5FD0C4;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121614; --surface:#1A201D; --ink:#E4E8E4; --muted:#96A09B; --line:#2C3431;
+  --btn:#E4E8E4; --btn-ink:#121614; --up-ink:#F2B134; --down-ink:#5FD0C4;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:20px;padding-block:28px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 32px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(2.4rem,6vw,3.6rem);line-height:.95;letter-spacing:.01em;margin:0;text-transform:uppercase}
+h1 span{color:var(--up-ink)}
+h1 span + span{color:var(--down-ink)}
+.lede{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.label{font-family:var(--display);font-weight:600;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 18px;padding-block:16px;border-block:1px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:4px}
+select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 30px 7px 10px;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat;min-width:110px}
+button{font:inherit;cursor:pointer}
+.primary{font-family:var(--display);font-weight:700;font-size:1.05rem;letter-spacing:.08em;text-transform:uppercase;background:var(--btn);color:var(--btn-ink);border:0;border-radius:6px;padding:9px 20px;margin-left:auto}
+.primary kbd{font-family:var(--mono);font-size:.7rem;opacity:.6;margin-left:8px;border:1px solid currentColor;border-radius:3px;padding:0 4px}
+:focus-visible{outline:2px solid var(--up);outline-offset:2px}
+.brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px 32px;align-items:start}
+.task{font-family:var(--display);font-weight:600;font-size:1.6rem;line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.points{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.pt{display:flex;align-items:center;gap:10px}
+.dot{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:.8rem;color:#1A1F1D}
+.dot.s{background:var(--up)}
+.dot.f{background:var(--board);border:3px solid var(--down);color:var(--down)}
+.pt b{font-weight:600}
+.scale{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.deg{display:flex;flex-direction:column;align-items:center;min-width:38px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.deg b{font-family:var(--display);font-size:1.15rem;line-height:1.1}
+.deg small{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.deg.root{border-color:var(--up)}
+.board-wrap{overflow-x:auto;border-radius:10px;background:var(--surface);border:1px solid var(--line);padding:10px 6px}
+.board-wrap svg{display:block;min-width:820px;width:100%;height:auto}
+.toggles{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tog{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.92rem}
+.tog::before{content:"";width:10px;height:10px;border-radius:50%;border:2px solid var(--muted)}
+.tog[aria-pressed="true"]{border-color:var(--ink)}
+.tog[aria-pressed="true"]::before{background:var(--ink);border-color:var(--ink)}
+.ghost{background:transparent;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:6px 4px;font-size:.92rem}
+.route-panel{display:flex;flex-direction:column;gap:10px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.9rem;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.tab-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+pre.tab{margin:0;font-family:var(--mono);font-size:.95rem;line-height:1.45;color:var(--muted)}
+pre.tab .u{color:var(--up-ink);font-weight:700}
+pre.tab .d{color:var(--down-ink);font-weight:700}
+.note{color:var(--muted);font-size:.9rem;max-width:70ch;margin:0}
+.rules{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;color:var(--ink)}
+.rules li::marker{font-family:var(--display);font-weight:700;color:var(--muted)}
+@media (max-width:640px){ .primary{margin-left:0;width:100%} .task{font-size:1.35rem} }
+@media (prefers-reduced-motion:no-preference){ .board-wrap svg .fade{animation:fade .35s ease-out both} @keyframes fade{from{opacity:.2}to{opacity:1}} }
+</style>
+<style>
+[hidden]{display:none!important}
+.setup{display:flex;flex-direction:column;gap:14px;padding-block:16px;border-block:1px solid var(--line)}
+.setup .controls{border:0;padding:0}
+.rowlabel{font-family:var(--display);font-weight:700;font-size:.95rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);min-width:86px;align-self:center}
+.dot.m{background:var(--inlay);border:2px solid #1A1F1D}
+.dot.q{background:transparent;border:2px dashed var(--muted);color:var(--muted)}
+.points{gap:6px}
+.pt{transition:opacity .2s}
+.pt.dim{opacity:.55}
+.pt.hid{color:var(--muted);font-style:italic}
+.pt .oct{font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-left:4px}
+.keychg{margin-left:32px;font-family:var(--display);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;color:var(--down-ink)}
+.notice{margin:0;font-size:.9rem;color:var(--up-ink)}
+.free{margin:12px 0 0;max-width:52ch}
+.deg.new{background:var(--up);border-color:var(--up)} .deg.new b,.deg.new small{color:#1A1F1D}
+.deg.off{opacity:.4}
+.legcard{display:grid;grid-template-columns:auto 1fr auto;gap:12px 22px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.legcard h2{font-family:var(--display);font-weight:700;font-size:1.3rem;letter-spacing:.04em;text-transform:uppercase;margin:0;white-space:nowrap}
+.legbody{display:flex;flex-direction:column;gap:4px;min-width:0}
+.legbody .key{font-family:var(--display);font-weight:600;font-size:1.15rem}
+.legbody .travel{color:var(--ink)}
+.legbody .con{color:var(--ink)} .legbody .con b{font-family:var(--display);letter-spacing:.08em;text-transform:uppercase;font-size:.85rem;color:var(--up-ink);margin-right:6px}
+.legnav{display:flex;gap:8px}
+.legnav button{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-family:var(--display);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.legnav button:disabled{opacity:.4;cursor:default}
+.legnav button.go{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.hintrow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.hintrow .field{flex-direction:row;align-items:center;gap:8px}
+.seg-group{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg{background:transparent;border:0;color:var(--muted);padding:7px 16px;font-family:var(--display);font-weight:600;font-size:1rem;letter-spacing:.06em;text-transform:uppercase}
+.seg + .seg{border-left:1px solid var(--line)}
+.seg[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink)}
+.twelve{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.twelve-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px}
+.twelve-head .task{margin:2px 0 0}
+.twtime{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.keys{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.keys li{font-family:var(--display);font-weight:700;font-size:1.05rem;min-width:44px;text-align:center;padding:5px 8px;border:1px solid var(--line);border-radius:6px;color:var(--muted)}
+.keys li.done{text-decoration:line-through;opacity:.55}
+.keys li.cur{background:var(--up);border-color:var(--up);color:#1A1F1D}
+.keys li.bridge{margin-left:14px}
+.keys small{display:block;font-family:var(--mono);font-size:.68rem;font-weight:500;text-decoration:none}
+@media (max-width:720px){.legcard{grid-template-columns:1fr}.rowlabel{min-width:0;width:100%}}
+</style>
+</head>
+<body class="ws-padded">
+<nav class="ws-nav" aria-label="Practice tools"><div class="ws-inner"><a class="ws-home" href="../">Woodshed</a><div class="ws-links"><a href="../root-to-root/" aria-current="page">Root to Root</a><a href="../fret-roulette/">Fret Roulette</a><a href="../blind-voicings/">Blind Voicings</a><a href="../spelled-out/">Spelled Out</a><a href="../interval-mirror/">Interval Mirror</a></div></div></nav>
+<script>(function(){var l=document.querySelector(".ws-links"),a=l&&l.querySelector("[aria-current]");if(a&&l.scrollWidth>l.clientWidth)l.scrollLeft=a.offsetLeft-l.offsetLeft-16;})();</script>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span>Root</span> to <span>Root</span></h1>
+      <p class="lede">Notes scattered across the neck, numbered in the order you visit them. Travel from one to the next inside the scale, one leg at a time. How you get there is up to you, unless a leg says otherwise.</p>
+    </div>
+  </header>
+
+  <div class="setup">
+    <div class="controls" role="group" aria-label="Practice mode">
+      <span class="rowlabel">Mode</span>
+      <div class="seg-group">
+        <button class="seg" id="mFree" type="button" aria-pressed="true">Free practice</button>
+        <button class="seg" id="mTwelve" type="button" aria-pressed="false">12-key challenge</button>
+      </div>
+      <span class="note" id="modeNote" hidden>Work through all 12 keys. Each new key is a major third up, with a half-step jump after every third key.</span>
+    </div>
+    <div class="controls" role="group" aria-label="Route settings">
+      <span class="rowlabel">Route</span>
+      <div class="field"><label class="label" for="tuning">Tuning</label><select id="tuning"></select></div>
+      <div class="field"><label class="label" for="key" id="keyLabel">Key</label><select id="key"></select></div>
+      <div class="field"><label class="label" for="scale">Scale</label><select id="scale"></select></div>
+      <div class="field"><label class="label" for="targets">Targets</label>
+        <select id="targets"><option value="root">Roots only</option><option value="scale">Any scale note</option></select></div>
+      <div class="field"><label class="label" for="count">Stops</label>
+        <select id="count"><option value="2">2 stops</option><option value="3">3 stops</option><option value="4" selected>4 stops</option><option value="5">5 stops</option><option value="6">6 stops</option></select></div>
+      <div class="field"><label class="label" for="from">Frets</label>
+        <div style="display:flex;gap:6px;align-items:center"><select id="from" aria-label="Lowest fret" style="min-width:74px"></select><span class="label">to</span><select id="to" aria-label="Highest fret" style="min-width:74px"></select></div></div>
+      <button class="primary" id="next" type="button">New route<kbd>N</kbd></button>
+    </div>
+    <div class="controls" role="group" aria-label="Challenge settings">
+      <span class="rowlabel">Challenge</span>
+      <div class="field"><label class="label" for="travel">Travel with</label>
+        <select id="travel"><option value="scale">The full scale</option><option value="arpeggio">Arpeggio (chord tones)</option><option value="intervals">Interval jumps</option></select></div>
+      <div class="field" id="fChord" hidden><label class="label" for="chordType">Chord</label>
+        <select id="chordType">
+          <option value="triad">Triad (1 3 5)</option><option value="seventh" selected>Seventh (1 3 5 7)</option><option value="sixth">Sixth (1 3 5 6)</option>
+          <option value="sus2">Sus2 (1 2 5)</option><option value="sus4">Sus4 (1 4 5)</option><option value="add9">Add9 (1 3 5 9)</option>
+          <option value="ninth">Ninth (1 3 5 7 9)</option><option value="eleventh">Eleventh (1 3 5 7 9 11)</option><option value="thirteenth">Thirteenth (all 7 notes)</option>
+          <option value="random">Random each leg</option></select></div>
+      <div class="field" id="fChordOn" hidden><label class="label" for="chordOn">Built on</label>
+        <select id="chordOn"><option value="tonic">The key's root</option><option value="random">Any scale degree</option></select></div>
+      <div class="field" id="fInterval" hidden><label class="label" for="interval">Interval</label>
+        <select id="interval">
+          <optgroup label="Scale intervals (stay in key)"><option value="s3">Scale 3rds</option><option value="s4">Scale 4ths</option><option value="s5">Scale 5ths</option><option value="s6">Scale 6ths</option><option value="srand">Random scale interval</option></optgroup>
+          <optgroup label="Exact intervals (chromatic)"><option value="c1">Minor 2nd</option><option value="c2">Major 2nd</option><option value="c3">Minor 3rd</option><option value="c4">Major 3rd</option><option value="c5">Perfect 4th</option><option value="c6">Tritone</option><option value="c7">Perfect 5th</option><option value="c8">Minor 6th</option><option value="c9">Major 6th</option><option value="c10">Minor 7th</option><option value="c11">Major 7th</option><option value="c12">Octave</option><option value="crand">Random exact interval</option></optgroup>
+        </select></div>
+      <div class="field" id="fKeychange"><label class="label" for="keychange">Key change</label>
+        <select id="keychange"><option value="off">Off</option><option value="once">Once</option><option value="every">Every leg</option></select></div>
+      <div class="field" id="fNewkey" hidden><label class="label" for="newkey">New key</label>
+        <select id="newkey"><option value="related">Closely related</option><option value="any">Any key</option></select></div>
+      <div class="field"><label class="label" for="constraints">Constraints</label>
+        <select id="constraints"><option value="off">Off</option><option value="some">Some legs</option><option value="every">Every leg</option></select></div>
+      <button class="tog" id="tDeg" type="button" aria-pressed="false">Name stops by degree</button>
+      <button class="tog" id="tHide" type="button" aria-pressed="false">Hidden stops</button>
+    </div>
+  </div>
+
+  <section class="twelve" id="twelve" hidden aria-live="polite">
+    <div class="twelve-head">
+      <div><div class="label">12-key challenge</div><p class="task" id="twTitle"></p><p class="note" id="twSub"></p></div>
+      <div class="legnav"><button type="button" id="twRestart">Restart</button><button type="button" id="twDone" class="go">Finished this key ▶</button></div>
+    </div>
+    <ol class="keys" id="twKeys" aria-label="Key order"></ol>
+  </section>
+
+  <section class="brief" aria-live="polite">
+    <div>
+      <div class="label">Your route</div>
+      <p class="task" id="task"></p>
+      <p class="notice" id="notice" hidden></p>
+      <div class="points" id="points"></div>
+    </div>
+    <div>
+      <div class="label" id="toneLabel">Scale tones</div>
+      <div class="scale" id="spelling"></div>
+      <p class="note" id="parent" style="margin-top:8px"></p>
+      <p class="free" id="howto"></p>
+    </div>
+  </section>
+
+  <div class="legcard" aria-live="polite">
+    <h2 id="legTitle"></h2>
+    <div class="legbody">
+      <div class="key" id="legKey"></div>
+      <div class="travel" id="legTravel"></div>
+      <div class="con" id="legCon"></div>
+    </div>
+    <div class="legnav">
+      <button type="button" id="prevLeg">◀ Back</button>
+      <button type="button" id="nextLeg" class="go">Next leg ▶</button>
+    </div>
+  </div>
+
+  <div class="board-wrap"><svg id="board" role="img" aria-label="Fretboard"></svg></div>
+
+  <div class="hintrow">
+    <div class="field"><label class="label" for="hints">Neck hints</label>
+      <select id="hints"><option value="off">Off</option><option value="deg">Scale degrees</option><option value="name">Note names</option></select></div>
+    <span class="note">Hints follow the key of the leg you're on. Keys: N new route, ← → change leg.</span>
+  </div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+// ---------- tunings ----------
+const PCS=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const TUNINGS=[
+  {id:'p6',g:'6-string',name:'Perfect fourths (E A D G C F)',notes:[40,45,50,55,60,65]},
+  {id:'s6',g:'6-string',name:'Standard (E A D G B E)',notes:[40,45,50,55,59,64]},
+  {id:'dropd',g:'6-string',name:'Drop D (D A D G B E)',notes:[38,45,50,55,59,64]},
+  {id:'dstd',g:'6-string',name:'D standard (D G C F A D)',notes:[38,43,48,53,57,62]},
+  {id:'dropc',g:'6-string',name:'Drop C (C G C F A D)',notes:[36,43,48,53,57,62]},
+  {id:'dadgad',g:'6-string',name:'DADGAD',notes:[38,45,50,55,57,62]},
+  {id:'openg',g:'6-string',name:'Open G (D G D G B D)',notes:[38,43,50,55,59,62]},
+  {id:'opend',g:'6-string',name:'Open D (D A D F♯ A D)',notes:[38,45,50,54,57,62]},
+  {id:'p7',g:'7-string',name:'Perfect fourths (B E A D G C F)',notes:[35,40,45,50,55,60,65]},
+  {id:'s7',g:'7-string',name:'Standard (B E A D G B E)',notes:[35,40,45,50,55,59,64]},
+  {id:'dropa7',g:'7-string',name:'Drop A (A E A D G B E)',notes:[33,40,45,50,55,59,64]},
+  {id:'p8',g:'8-string',name:'Perfect fourths (F♯ B E A D G C F)',notes:[30,35,40,45,50,55,60,65]},
+  {id:'s8',g:'8-string',name:'Standard (F♯ B E A D G B E)',notes:[30,35,40,45,50,55,59,64]},
+  {id:'drope8',g:'8-string',name:'Drop E (E B E A D G B E)',notes:[28,35,40,45,50,55,59,64]},
+  {id:'b4',g:'Bass 4-string',name:'Bass standard (E A D G)',notes:[28,33,38,43]},
+  {id:'b4dropd',g:'Bass 4-string',name:'Bass Drop D (D A D G)',notes:[26,33,38,43]},
+  {id:'b4dstd',g:'Bass 4-string',name:'Bass D standard (D G C F)',notes:[26,31,36,41]},
+  {id:'b4bead',g:'Bass 4-string',name:'Bass BEAD (B E A D)',notes:[23,28,33,38]},
+  {id:'b5',g:'Bass 5-string',name:'Bass 5-string standard (B E A D G)',notes:[23,28,33,38,43]},
+  {id:'b5c',g:'Bass 5-string',name:'Bass 5-string high C (E A D G C)',notes:[28,33,38,43,48]},
+  {id:'b6',g:'Bass 6-string',name:'Bass 6-string standard (B E A D G C)',notes:[23,28,33,38,43,48]}
+];
+let T, N, SN;
+function useTuning(id){
+  T=TUNINGS.find(t=>t.id===id); N=T.notes.length; SN=T.notes.map(m=>PCS[m%12]);
+  if(SN[N-1][0]===SN[0][0]) SN[N-1]=SN[N-1].toLowerCase();   // high e / high d
+}
+const ord=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
+const strNum=s=>N-s;                                          // 1 = highest string
+const stringLabel=s=>`${ord(strNum(s))} string (${s===0?'low '+SN[0]:SN[s]})`;
+
+// ---------- scales ----------
+const MAJOR=[0,2,4,5,7,9,11];
+const SCALES={};
+[['ionian','Ionian','Ionian (Major)'],['dorian','Dorian','Dorian'],['phrygian','Phrygian','Phrygian'],['lydian','Lydian','Lydian'],
+ ['mixolydian','Mixolydian','Mixolydian'],['aeolian','Aeolian','Aeolian (Natural minor)'],['locrian','Locrian','Locrian']]
+ .forEach(([id,short,label],m)=>{SCALES[id]={name:short,label,group:'modes',mode:m,degs:[1,2,3,4,5,6,7],steps:MAJOR.map((_,i)=>(MAJOR[(m+i)%7]-MAJOR[m]+12)%12)};});
+Object.assign(SCALES,{
+  harmonic:{name:'Harmonic minor',label:'Harmonic minor',group:'minor',degs:[1,2,3,4,5,6,7],steps:[0,2,3,5,7,8,11],about:'Natural minor with a raised 7th.'},
+  melodic:{name:'Melodic minor',label:'Melodic minor',group:'minor',degs:[1,2,3,4,5,6,7],steps:[0,2,3,5,7,9,11],about:'Natural minor with a raised 6th and 7th, the same going up and down.'},
+  majpent:{name:'Major pentatonic',label:'Major pentatonic',group:'pent',degs:[1,2,3,5,6],steps:[0,2,4,7,9],about:'The major scale without its 4th and 7th.'},
+  minpent:{name:'Minor pentatonic',label:'Minor pentatonic',group:'pent',degs:[1,3,4,5,7],steps:[0,3,5,7,10],about:'The natural minor scale without its 2nd and 6th.'}
+});
+const GROUPS=[['modes','Modes of the major scale'],['minor','Minor scales'],['pent','Pentatonic scales']];
+const KEYS=[
+  {pc:0,sp:[{n:'C',l:0}]},{pc:1,sp:[{n:'D♭',l:1},{n:'C♯',l:0}]},{pc:2,sp:[{n:'D',l:1}]},{pc:3,sp:[{n:'E♭',l:2},{n:'D♯',l:1}]},
+  {pc:4,sp:[{n:'E',l:2}]},{pc:5,sp:[{n:'F',l:3}]},{pc:6,sp:[{n:'F♯',l:3},{n:'G♭',l:4}]},{pc:7,sp:[{n:'G',l:4}]},
+  {pc:8,sp:[{n:'A♭',l:5},{n:'G♯',l:4}]},{pc:9,sp:[{n:'A',l:5}]},{pc:10,sp:[{n:'B♭',l:6},{n:'A♯',l:5}]},{pc:11,sp:[{n:'B',l:6}]}];
+const LET='CDEFGAB', LETPC=[0,2,4,5,7,9,11];
+const ACC={'-2':'𝄫','-1':'♭','0':'','1':'♯','2':'𝄪'};
+
+function spellFrom(r,pc0,scale){
+  return scale.steps.map((st,i)=>{
+    const dg=scale.degs[i], li=(r.l+dg-1)%7, pc=(pc0+st)%12;
+    let d=((pc-LETPC[li])%12+12)%12; if(d>6)d-=12;
+    const alt=st-MAJOR[dg-1];
+    return {pc,d,st,name:LET[li]+ACC[d],deg:dg,lab:(alt<0?'♭':alt>0?'♯':'')+dg};
+  });
+}
+function spell(key,scale){
+  const score=sp=>sp.reduce((t,n)=>t+(Math.abs(n.d)>1?9:Math.abs(n.d)),0);
+  return key.sp.map(r=>spellFrom(r,key.pc,scale)).reduce((a,b)=>score(b)<score(a)?b:a);
+}
+const PCN=['C','D♭','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const CHROM=['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7'];
+const INTNAME=['','minor 2nd','major 2nd','minor 3rd','major 3rd','perfect 4th','tritone','perfect 5th','minor 6th','major 6th','minor 7th','major 7th','octave'];
+// chord types as generic chord-tone numbers stacked from the chord root
+const CHORDS={triad:[1,3,5],seventh:[1,3,5,7],sixth:[1,3,5,6],sus2:[1,2,5],sus4:[1,4,5],add9:[1,3,5,9],ninth:[1,3,5,7,9],eleventh:[1,3,5,7,9,11],thirteenth:[1,3,5,7,9,11,13]};
+const BASE={'1 3 5':'','1 ♭3 5':'m','1 ♭3 ♭5':'°','1 3 ♯5':'+','1 3 ♭5':'(♭5)','1 2 5':'sus2','1 ♭2 5':'sus♭2','1 2 ♭5':'sus2(♭5)','1 ♭2 ♭5':'sus♭2(♭5)',
+  '1 4 5':'sus4','1 ♯4 5':'sus♯4','1 4 ♭5':'sus4(♭5)','1 4 ♯5':'sus4(♯5)',
+  '1 3 5 7':'maj7','1 3 5 ♭7':'7','1 ♭3 5 ♭7':'m7','1 ♭3 ♭5 ♭7':'m7♭5','1 ♭3 5 7':'m(maj7)','1 3 ♯5 7':'maj7♯5','1 3 ♭5 ♭7':'7♭5','1 ♭3 ♭5 𝄫7':'°7','1 3 ♭5 7':'maj7♭5',
+  '1 3 5 6':'6','1 ♭3 5 6':'m6','1 3 5 ♭6':'(♭6)','1 ♭3 5 ♭6':'m(♭6)','1 ♭3 ♭5 ♭6':'°(♭6)','1 3 ♯5 6':'+6','1 ♭3 ♭5 6':'°6'};
+function chordLabel(g,semis){
+  const base=MAJOR[(g-1)%7]; let a=((semis-base)%12+12)%12; if(a>6)a-=12;
+  return (a===-2?'𝄫':a===-1?'♭':a===1?'♯':a===2?'𝄪':'')+g;
+}
+// build a chord from the scale: `type` from CHORDS, rooted on scale step `on` (0 = the key's root)
+function buildChord(I,type,on){
+  const nums=CHORDS[type], seven=I.sp.length===7;
+  if(!seven) on=0;
+  const root=I.sp[on], tones=[];
+  nums.forEach(g=>{
+    let n;
+    if(seven) n=I.sp[(on+g-1)%7];
+    else n=I.sp.find(x=>x.deg===((g-1)%7)+1);         // pentatonic: use the tone if the scale has it
+    if(!n) return;
+    const semis=(n.pc-root.pc+12)%12;
+    tones.push({pc:n.pc,name:n.name,d:n.d,g,lab:g===1?'1':chordLabel(g,semis)});
+  });
+  const core=tones.filter(t=>t.g<=7), ext=tones.filter(t=>t.g>7);
+  let q=BASE[core.map(t=>t.lab).join(' ')];
+  if(q===undefined) q='('+core.map(t=>t.lab).join(' ')+')';
+  if(ext.length){
+    if(type==='add9') q+=q===''&&ext[0].lab==='9'?'add9':`(add${ext[0].lab})`;
+    else if(ext.every(t=>/^\d+$/.test(t.lab))&&['maj7','7','m7'].includes(q)) q=q.replace('7',String(ext[ext.length-1].g));
+    else q+='('+ext.map(t=>t.lab).join(',')+')';
+  }
+  return {tones,name:root.name+q,on,type,degLab:I.sp[on].lab};
+}
+// everything the page needs to know about one key + scale
+const infoCache=new Map();
+function info(ctx){
+  const k=ctx.keyIdx+'|'+ctx.scaleId; if(infoCache.has(k)) return infoCache.get(k);
+  const scale=SCALES[ctx.scaleId], sp=spell(KEYS[ctx.keyIdx],scale);
+  const map={}; sp.forEach(n=>map[n.pc]=n);
+  const o={scale,sp,map,pcs:sp.map(n=>n.pc),name:`${sp[0].name} ${scale.name}`};
+  infoCache.set(k,o); return o;
+}
+
+// ---------- controls ----------
+$('tuning').innerHTML=['6-string','7-string','8-string','Bass 4-string','Bass 5-string','Bass 6-string'].map(g=>`<optgroup label="${g.startsWith('Bass')?g:'Guitar '+g}">`+TUNINGS.filter(t=>t.g===g).map(t=>`<option value="${t.id}">${t.name}</option>`).join('')+'</optgroup>').join('');
+$('key').innerHTML='<option value="random">Random</option>'+KEYS.map((k,i)=>`<option value="${i}">${k.sp.map(x=>x.n).join(' / ')}</option>`).join('');
+$('scale').innerHTML='<option value="random">Random (any scale)</option>'+GROUPS.map(([g,label])=>`<optgroup label="${label}">`+
+  Object.entries(SCALES).filter(([,s])=>s.group===g).map(([id,s])=>`<option value="${id}">${s.label}</option>`).join('')+'</optgroup>').join('');
+$('from').innerHTML=Array.from({length:20},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('');
+$('to').innerHTML=Array.from({length:20},(_,i)=>`<option value="${i+5}">${i+5}</option>`).join('');
+$('key').value='0'; $('scale').value='ionian'; $('from').value='1'; $('to').value='15';
+
+const cfg=()=>({key:$('key').value,scale:$('scale').value,count:+$('count').value,targets:$('targets').value,travel:$('travel').value,
+  interval:$('interval').value,chordType:$('chordType').value,chordOn:$('chordOn').value,keychange:$('keychange').value,newkey:$('newkey').value,constraints:$('constraints').value,from:+$('from').value,to:+$('to').value});
+
+// ---------- state ----------
+// 12-key challenge: up a major third each time; the cycle closes after 3 keys, so hop up a half step to the next cycle
+const TW={on:false,order:[],scaleIds:[],idx:0,start:0,end:0,done:false};
+const twelveOrder=k=>{const o=[];for(let b=0;b<4;b++){const st=(k+9*b)%12;o.push(st,(st+4)%12,(st+8)%12);}return o;};
+const pickScale=()=>$('scale').value==='random'?rnd(Object.keys(SCALES)):$('scale').value;
+function startTwelve(){
+  const kv=$('key').value, k=kv==='random'?Math.floor(Math.random()*12):+kv;
+  Object.assign(TW,{order:twelveOrder(k),idx:0,start:Date.now(),end:0,done:false});
+  TW.scaleIds=TW.order.map(pickScale);
+  newChallenge();
+}
+function nextKey(){
+  if(TW.done)return;
+  if(TW.idx<11){TW.idx++;newChallenge();}
+  else{TW.done=true;TW.end=Date.now();render();}
+}
+const mmss=ms=>{const t=Math.floor(ms/1000);return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;};
+const S={stops:[],legs:[],cur:0,travel:'scale',note:'',degOnly:false,hidden:false,hints:'off',from:1,to:15};
+
+function spotsFor(pc,c){
+  const out=[];
+  for(let s=0;s<N;s++)for(let f=c.from;f<=c.to;f++) if((T.notes[s]+f)%12===pc) out.push({s,f,pc});
+  return out;
+}
+function pickNewKey(prev,c){
+  const scaleOf=()=>c.scale==='random'?rnd(Object.keys(SCALES)):prev.scaleId;
+  const setOf=o=>new Set(info(o).pcs);
+  const ps=setOf(prev);
+  const cands=[];
+  for(let t=0;t<40;t++){
+    const o={keyIdx:Math.floor(Math.random()*12),scaleId:scaleOf()};
+    const s=setOf(o), shared=[...s].filter(x=>ps.has(x)).length;
+    if(shared===s.size&&s.size===ps.size) continue;             // same notes: not a real change
+    cands.push({o,shared});
+  }
+  if(c.newkey==='any'||!cands.length) return (cands.length?rnd(cands).o:{...prev,keyIdx:(prev.keyIdx+7)%12});
+  const best=Math.max(...cands.map(x=>x.shared));
+  return rnd(cands.filter(x=>x.shared===best)).o;
+}
+const pitch=r=>T.notes[r.s]+r.f;
+function pickStop(leg,c,prev,isStart,stops){
+  const I=info(leg);
+  const rootPc=leg.chord?leg.chord.tones[0].pc:I.sp[0].pc;
+  let pcs=isStart||c.targets==='root'?[rootPc]:leg.chord?leg.chord.tones.map(t=>t.pc):I.pcs;
+  if(prev&&pcs.length>1) pcs=pcs.filter(p=>p!==prev.pc);
+  // exact intervals: the target has to be reachable in whole jumps of that interval
+  if(!isStart&&leg.interval&&leg.interval.kind==='exact'){
+    const k=leg.interval.semi, pp=pitch(prev), all=[];
+    for(let s=0;s<N;s++)for(let f=c.from;f<=c.to;f++){
+      const q={s,f,pc:(T.notes[s]+f)%12}, d=pitch(q)-pp;
+      if(d===0||d%k||stops.some(r=>r.s===s&&r.f===f)) continue;
+      all.push({q,m:Math.abs(d/k)});
+    }
+    for(const ok of [x=>pcs.includes(x.q.pc)&&x.m>=2&&x.m<=8, x=>x.m>=2&&x.m<=8, x=>x.m>=1]){
+      const pool=all.filter(ok); if(pool.length) return rnd(pool).q;
+    }
+  }
+  for(let t=0;t<40;t++){
+    const free=spotsFor(rnd(pcs),c).filter(q=>!stops.some(r=>r.s===q.s&&r.f===q.f));
+    if(free.length) return rnd(free);
+  }
+  return rnd(spotsFor(pcs[0],c));
+}
+function makeConstraint(a,b,c){
+  const opts=[];
+  const sLo=Math.min(a.s,b.s), sHi=Math.max(a.s,b.s);
+  let lo=sLo, hi=sHi;
+  while(hi-lo<2){ if(hi<N-1&&(Math.random()<.5||lo===0)) hi++; else lo--; }
+  if(hi-lo<N-1) opts.push(`Stay on strings ${strNum(hi)} to ${strNum(lo)} only.`);
+  const fLo=Math.min(a.f,b.f), fHi=Math.max(a.f,b.f);
+  if(fHi-fLo<=4){
+    const x=Math.max(c.from,Math.min(fLo,fHi-4+Math.floor(Math.random()*(5-(fHi-fLo)))));
+    opts.push(`Keep your hand in one position: frets ${x} to ${x+4}, no shifting.`);
+  } else if(fHi-fLo<=8) opts.push(`Never leave frets ${fLo} to ${fHi}.`);
+  if(sHi-sLo>=2) opts.push('Play at least one note on every string between the two stops.');
+  opts.push('No more than 3 notes on any string.','No more than 2 notes on any string.',
+    'Start by moving away from the target, then turn around.','Change position at least once with a slide.',
+    'Legato only: pick the first note on each string, hammer-on or pull-off the rest.');
+  return rnd(opts);
+}
+function newChallenge(){
+  const c=cfg();
+  if(c.to-c.from<4){ c.to=Math.min(24,c.from+4); c.from=c.to-4; $('from').value=c.from; $('to').value=c.to; }
+  let n=c.count; S.note='';
+  if(TW.on) c.keychange='off';
+  if(c.keychange!=='off'&&n<3){n=3;S.note='Key changes need at least 3 stops, so this route has 3.';}
+  const ctx0=TW.on?{keyIdx:TW.order[TW.idx],scaleId:TW.scaleIds[TW.idx]}
+    :{keyIdx:c.key==='random'?Math.floor(Math.random()*12):+c.key,scaleId:c.scale==='random'?rnd(Object.keys(SCALES)):c.scale};
+  const changeAt=1+Math.floor(Math.random()*(n-2));
+  const legs=[]; let ctx=ctx0;
+  for(let j=0;j<n-1;j++){
+    if(j>0&&(c.keychange==='every'||(c.keychange==='once'&&j===changeAt))) ctx=pickNewKey(ctx,c);
+    const v=c.interval;
+    const interval=c.travel!=='intervals'?null:v==='srand'?{kind:'scale',k:rnd([3,4,5,6])}:v==='crand'?{kind:'exact',semi:1+Math.floor(Math.random()*12)}
+      :v[0]==='s'?{kind:'scale',k:+v.slice(1)}:{kind:'exact',semi:+v.slice(1)};
+    let chord=null;
+    if(c.travel==='arpeggio'){
+      const type=c.chordType==='random'?rnd(Object.keys(CHORDS)):c.chordType;
+      chord=buildChord(info(ctx),type,c.chordOn==='random'?Math.floor(Math.random()*7):0);
+    }
+    legs.push({...ctx,interval,chord,constraint:null});
+  }
+  const stops=[pickStop(legs[0],c,null,true,[])];
+  for(let i=1;i<n;i++) stops.push(pickStop(legs[i-1],c,stops[i-1],false,stops));
+  if(c.constraints!=='off'){
+    legs.forEach((L,j)=>{ if(c.constraints==='every'||Math.random()<.5) L.constraint=makeConstraint(stops[j],stops[j+1],c); });
+    if(!legs.some(L=>L.constraint)){const j=Math.floor(Math.random()*legs.length);legs[j].constraint=makeConstraint(stops[j],stops[j+1],c);}
+  }
+  Object.assign(S,{stops,legs,cur:0,travel:c.travel,from:c.from,to:c.to});
+  render();
+}
+
+// ---------- geometry ----------
+const W=1120, NUT=78, TOP=34, SP=34, LAST=W-24;
+const FONT='Barlow Condensed,Arial Narrow,sans-serif';
+let HIF=15, K=18;
+const fx=n=>NUT+(LAST-NUT)*(1-Math.pow(2,-n/K))/(1-Math.pow(2,-HIF/K));
+const nx=f=>f===0?NUT-24:(fx(f-1)+fx(f))/2;
+const sy=s=>TOP+(N-1-s)*SP;
+
+function sameCtx(a,b){return a.keyIdx===b.keyIdx&&a.scaleId===b.scaleId;}
+function travelText(L,I){
+  if(L.chord){
+    const ch=L.chord, on=ch.on?` It's the chord on degree ${ch.degLab} of ${I.name}.`:'';
+    return `Use only ${ch.name} chord tones: ${ch.tones.map(t=>S.degOnly?t.lab:t.name).join(' ')}.${on}`;
+  }
+  if(L.interval&&L.interval.kind==='scale'){
+    const k=L.interval.k, names={3:'3rd',4:'4th',5:'5th',6:'6th'}, skip=k-2;
+    return `Every move is a scale ${names[k]}, up or down: skip ${skip} scale note${skip>1?'s':''} each time.`;
+  }
+  if(L.interval){
+    const k=L.interval.semi;
+    return `Every move is exactly a ${INTNAME[k]} (${k} fret${k>1?'s':''} on one string), up or down. Notes can leave the key.`;
+  }
+  return `Use any notes of ${I.name}.`;
+}
+
+// how to name a note in the context of a leg: chord tone, scale degree, or (exact intervals) a note outside the key
+function noteLabel(pc,leg){
+  const I=info(leg);
+  if(leg.chord){ const t=leg.chord.tones.find(t=>t.pc===pc);
+    if(t){ const w=t.lab==='1'?'root':t.lab; return {name:t.name,lab:t.lab,d:t.d,desc:`${w} of ${leg.chord.name}`,degDesc:`the ${w} of ${leg.chord.name}`}; } }
+  const m=I.map[pc];
+  if(m){ const w=m.deg===1?'root':m.lab; return {name:m.name,lab:m.deg===1?'1':m.lab,d:m.d,desc:m.deg===1?'root':'degree '+m.lab,degDesc:`the ${w} of ${I.name}`}; }
+  const lab=CHROM[(pc-I.sp[0].pc+12)%12], nm=PCN[pc];
+  return {name:nm,lab,d:nm.includes('♯')?1:nm.includes('♭')?-1:0,desc:`${lab}, outside the key`,degDesc:`the ${lab} of ${I.name} (outside the key)`};
+}
+
+function render(){
+  const n=S.stops.length, last=n-1, cur=S.cur;
+  const vis=i=>!S.hidden||i<=cur+1;
+  const infos=S.legs.map(info), infoStop=i=>infos[Math.max(0,i-1)];
+  const changes=S.legs.filter((L,j)=>j>0&&!sameCtx(L,S.legs[j-1])).length;
+
+  $('fInterval').hidden=$('travel').value!=='intervals';
+  $('fChord').hidden=$('fChordOn').hidden=$('travel').value!=='arpeggio';
+  $('fNewkey').hidden=TW.on||$('keychange').value==='off';
+  $('fKeychange').hidden=TW.on;
+  $('mFree').setAttribute('aria-pressed',!TW.on); $('mTwelve').setAttribute('aria-pressed',TW.on);
+  $('modeNote').hidden=!TW.on; $('twelve').hidden=!TW.on;
+  $('keyLabel').textContent=TW.on?'Starting key':'Key';
+  $('next').firstChild.textContent=TW.on?'New stops':'New route';
+  if(TW.on) renderTwelve();
+  $('tDeg').setAttribute('aria-pressed',S.degOnly); $('tHide').setAttribute('aria-pressed',S.hidden);
+
+  $('task').textContent=`${infos[0].name}: ${n} stops${changes?`, ${changes} key change${changes>1?'s':''}`:''}.`;
+  $('notice').textContent=S.note; $('notice').hidden=!S.note;
+
+  const stopText=(r,i)=>{
+    const m=noteLabel(r.pc,S.legs[Math.max(0,i-1)]);
+    if(S.degOnly) return `${m.degDesc}, ${stringLabel(r.s)}, fret ${r.f}`;
+    const oct=Math.floor((T.notes[r.s]+r.f-m.d)/12)-1;
+    return `${m.name} (${m.desc}) on the ${stringLabel(r.s)}, fret ${r.f}<span class="oct">${m.name}${oct}</span>`;
+  };
+  let h='';
+  S.stops.forEach((r,i)=>{
+    if(i>1&&!sameCtx(S.legs[i-1],S.legs[i-2])&&vis(i)) h+=`<div class="keychg">Key change → ${infos[i-1].name}</div>`;
+    if(!vis(i)){ h+=`<div class="pt hid"><span class="dot q">${i+1}</span><span>Hidden until you reach stop ${i}</span></div>`; return; }
+    const cls=i===0?'s':i===last?'f':'m', word=i===0?'Start':i===last?'Finish':'Then';
+    h+=`<div class="pt${i===cur||i===cur+1?'':' dim'}"><span class="dot ${cls}">${i+1}</span><span><b>${word}</b> ${stopText(r,i)}</span></div>`;
+  });
+  $('points').innerHTML=h;
+  $('howto').textContent=S.hidden?'Only the next stop is shown. Reach it, then press Next leg to reveal the one after.':'Start on the amber note, visit each numbered stop in order, and finish on the teal one.';
+
+  // leg card
+  const L=S.legs[cur], I=infos[cur], prevI=cur>0?infos[cur-1]:null;
+  $('legTitle').textContent=`Leg ${cur+1} of ${n-1}`;
+  $('legKey').textContent=`Stop ${cur+1} to stop ${cur+2} · ${I.name}${prevI&&!sameCtx(L,S.legs[cur-1])?' (new key)':''}`;
+  $('legTravel').textContent=travelText(L,I);
+  $('legCon').innerHTML=L.constraint?`<b>Constraint</b>${L.constraint}`:'';
+  $('legCon').hidden=!L.constraint;
+  $('prevLeg').disabled=cur===0; $('nextLeg').disabled=cur>=n-2;
+  $('nextLeg').textContent=S.hidden&&cur<n-2?'Reveal next stop ▶':'Next leg ▶';
+
+  // scale chips for the current leg
+  const prevSet=prevI&&!sameCtx(L,S.legs[cur-1])?new Set(prevI.pcs):null;
+  const ct=new Set(L.chord?L.chord.tones.map(t=>t.pc):[]);
+  $('toneLabel').textContent=`Scale tones · ${I.name}`;
+  $('spelling').innerHTML=I.sp.concat([{...I.sp[0],deg:8,lab:'8'}]).map(m=>{
+    let cls='deg'; if(m.deg===1||m.deg===8)cls+=' root'; if(prevSet&&!prevSet.has(m.pc))cls+=' new'; if(S.travel==='arpeggio'&&!ct.has(m.pc))cls+=' off';
+    return `<div class="${cls}"><b>${m.name}</b><small>${m.lab}</small></div>`;
+  }).join('');
+  let par=I.scale.mode===undefined?I.scale.about:I.scale.mode===0?'The major scale itself.':`Same notes as ${I.sp[(7-I.scale.mode)%7].name} major, starting from its ${['','2nd','3rd','4th','5th','6th','7th'][I.scale.mode]} degree.`;
+  if(prevSet) par+=' Highlighted notes are new since the last key.';
+  if(L.chord) par+=` Arpeggio: ${L.chord.name}.`;
+  $('parent').textContent=par;
+
+  // ---------- neck ----------
+  HIF=Math.max(12,S.to); K=HIF>17?30:18;
+  const BOT=sy(0), H=BOT+60;
+  const svg=$('board'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.style.minWidth=(HIF>17?1000:820)+'px';
+  let g='';
+  g+=`<rect x="${NUT}" y="${TOP-16}" width="${LAST-NUT}" height="${BOT-TOP+32}" rx="3" fill="var(--board)"/>`;
+  g+=`<rect x="${NUT}" y="${TOP-16}" width="${LAST-NUT}" height="3" fill="var(--board-edge)"/><rect x="${NUT}" y="${BOT+13}" width="${LAST-NUT}" height="3" fill="var(--board-edge)"/>`;
+  const midY=(TOP+BOT)/2;
+  [3,5,7,9,15,17,19,21].filter(f=>f<=HIF).forEach(f=>{g+=`<circle cx="${nx(f)}" cy="${midY}" r="6.5" fill="var(--inlay)" opacity=".85"/>`;});
+  [12,24].filter(f=>f<=HIF).forEach(f=>{g+=`<circle cx="${nx(f)}" cy="${midY-SP}" r="6.5" fill="var(--inlay)" opacity=".85"/><circle cx="${nx(f)}" cy="${midY+SP}" r="6.5" fill="var(--inlay)" opacity=".85"/>`;});
+  for(let f=1;f<=HIF;f++){
+    g+=`<rect x="${fx(f)-1.5}" y="${TOP-16}" width="3" height="${BOT-TOP+32}" fill="var(--fret)"/>`;
+    const mark=[3,5,7,9,12,15,17,19,21,24].includes(f);
+    g+=`<text x="${nx(f)}" y="${BOT+40}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="13" fill="var(--${mark?'ink':'muted'})" font-weight="${mark?700:400}">${f}</text>`;
+  }
+  g+=`<rect x="${NUT-5}" y="${TOP-16}" width="7" height="${BOT-TOP+32}" fill="var(--inlay)"/>`;
+  for(let s=0;s<N;s++){
+    const w=1+(N-1-s)*(2.4/(N-1));
+    g+=`<line x1="${NUT-44}" x2="${LAST}" y1="${sy(s)}" y2="${sy(s)}" stroke="var(--string)" stroke-width="${w}"/>`;
+    g+=`<line x1="${NUT-44}" x2="${NUT}" y1="${sy(s)}" y2="${sy(s)}" stroke="var(--muted)" stroke-width="${w}"/>`;
+    g+=`<text x="14" y="${sy(s)+5}" font-family="${FONT}" font-weight="700" font-size="16" fill="var(--muted)">${SN[s]}</text>`;
+  }
+  // shade frets outside the stop range
+  if(S.from>1) g+=`<rect x="${NUT+2}" y="${TOP-13}" width="${fx(S.from-1)-NUT-2}" height="${BOT-TOP+26}" fill="#000" opacity=".32"/>`;
+  if(S.to<HIF) g+=`<rect x="${fx(S.to)+2}" y="${TOP-13}" width="${LAST-fx(S.to)-2}" height="${BOT-TOP+26}" fill="#000" opacity=".32"/>`;
+  // hints in the current leg's key
+  if(S.hints!=='off'){
+    for(let s=0;s<N;s++)for(let f=0;f<=HIF;f++){
+      const pc=(T.notes[s]+f)%12, m=I.map[pc]; if(!m)continue;
+      if(S.stops.some((r,i)=>vis(i)&&r.s===s&&r.f===f))continue;   // keep stop markers clear
+      if(L.chord&&!ct.has(pc))continue;
+      const lb=L.chord?noteLabel(pc,L):null;
+      const r=L.chord?lb.lab==='1':m.deg===1, t=S.hints==='name'?m.name:(lb?lb.lab:m.lab);
+      g+=`<g class="fade"><circle cx="${nx(f)}" cy="${sy(s)}" r="11" fill="${r?'var(--inlay)':'rgba(234,227,212,.18)'}" stroke="var(--inlay)" stroke-width="1"/>`+
+         `<text x="${nx(f)}" y="${sy(s)+4.5}" text-anchor="middle" font-family="${FONT}" font-weight="700" font-size="${t.length>1?11.5:13}" fill="${r?'#3A2820':'var(--inlay)'}">${t}</text></g>`;
+    }
+  }
+  // connector for the current leg
+  const A=S.stops[cur], B=S.stops[cur+1];
+  g+=`<line x1="${nx(A.f)}" y1="${sy(A.s)}" x2="${nx(B.f)}" y2="${sy(B.s)}" stroke="var(--inlay)" stroke-width="2" stroke-dasharray="3 6" opacity=".7"/>`;
+  // stops
+  S.stops.forEach((r,i)=>{
+    if(!vis(i)) return;
+    const x=nx(r.f), y=sy(r.s), m=noteLabel(r.pc,S.legs[Math.max(0,i-1)]), nm=S.degOnly?m.lab:m.name;
+    let mk;
+    if(i===0) mk=`<circle cx="${x}" cy="${y}" r="15" fill="var(--up)" stroke="#1A1F1D" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle" font-family="${FONT}" font-weight="700" font-size="15" fill="#1A1F1D">${i+1}</text>`;
+    else if(i===last) mk=`<circle cx="${x}" cy="${y}" r="13.5" fill="var(--board)" stroke="var(--down)" stroke-width="4"/><text x="${x}" y="${y+5}" text-anchor="middle" font-family="${FONT}" font-weight="700" font-size="15" fill="var(--down)">${i+1}</text>`;
+    else mk=`<circle cx="${x}" cy="${y}" r="14" fill="var(--inlay)" stroke="#1A1F1D" stroke-width="2"/><text x="${x}" y="${y+5}" text-anchor="middle" font-family="${FONT}" font-weight="700" font-size="15" fill="#1A1F1D">${i+1}</text>`;
+    const tag=i===0?['START · '+nm,'up']:i===last?['FINISH · '+nm,'down']:[nm,'inlay'];
+    const ty=r.s===N-1?y+29:y-20;                     // top string: put the label under the marker
+    mk+=`<text x="${x}" y="${ty}" text-anchor="middle" font-family="${FONT}" font-weight="700" font-size="12" letter-spacing="1" stroke="var(--board)" stroke-width="4" paint-order="stroke" fill="var(--${tag[1]})">${tag[0]}</text>`;
+    g+=`<g opacity="${i===cur||i===cur+1?1:.5}">${mk}</g>`;
+  });
+  svg.innerHTML=g;
+  svg.setAttribute('aria-label',`${N}-string ${T.g.startsWith('Bass')?'bass':'guitar'} fretboard. `+S.stops.map((r,i)=>vis(i)?`Stop ${i+1}: ${stringLabel(r.s)} fret ${r.f}`:`Stop ${i+1} hidden`).join('. '));
+}
+
+function renderTwelve(){
+  const nameAt=i=>info({keyIdx:TW.order[i],scaleId:TW.scaleIds[i]}).sp[0].name;
+  $('twKeys').innerHTML=TW.order.map((k,i)=>{
+    const cls=[TW.done||i<TW.idx?'done':i===TW.idx?'cur':'', i%3===0&&i?'bridge':''].join(' ').trim();
+    return `<li class="${cls}"${i===TW.idx&&!TW.done?' aria-current="step"':''}>${nameAt(i)}<small>${i+1}</small></li>`;
+  }).join('');
+  $('twDone').hidden=TW.done;
+  if(TW.done){
+    $('twTitle').textContent='All 12 keys done.';
+    $('twSub').innerHTML=`Total time <span class="twtime">${mmss(TW.end-TW.start)}</span>. Press Restart to go again.`;
+    return;
+  }
+  const I=info({keyIdx:TW.order[TW.idx],scaleId:TW.scaleIds[TW.idx]});
+  $('twTitle').textContent=`Key ${TW.idx+1} of 12 · ${I.name}`;
+  const nxt=TW.idx<11?` Next up: ${nameAt(TW.idx+1)}, ${(TW.idx+1)%3===0?'a half step up to start a new cycle':'a major third up'}.`:' This is the last key.';
+  $('twSub').innerHTML=`Time <span class="twtime" id="twClock">${mmss(Date.now()-TW.start)}</span>.${nxt}`;
+}
+setInterval(()=>{const el=$('twClock'); if(TW.on&&!TW.done&&el) el.textContent=mmss(Date.now()-TW.start);},1000);
+
+// ---------- events ----------
+$('mFree').addEventListener('click',()=>{if(!TW.on)return;TW.on=false;newChallenge();});
+$('mTwelve').addEventListener('click',()=>{if(TW.on)return;TW.on=true;startTwelve();});
+$('twDone').addEventListener('click',nextKey);
+$('twRestart').addEventListener('click',startTwelve);
+function setLeg(d){const n=S.stops.length; S.cur=Math.max(0,Math.min(n-2,S.cur+d)); render();}
+$('tuning').addEventListener('change',e=>{useTuning(e.target.value);newChallenge();});
+$('next').addEventListener('click',()=>newChallenge());
+$('key').addEventListener('change',()=>{TW.on?startTwelve():newChallenge();});
+$('scale').addEventListener('change',()=>{if(TW.on){for(let i=TW.idx;i<12;i++)TW.scaleIds[i]=pickScale();}});
+['scale','count','targets','from','to','travel','interval','chordType','chordOn','keychange','newkey','constraints'].forEach(id=>$(id).addEventListener('change',newChallenge));
+$('tDeg').addEventListener('click',()=>{S.degOnly=!S.degOnly;render();});
+$('tHide').addEventListener('click',()=>{S.hidden=!S.hidden;render();});
+$('hints').addEventListener('change',e=>{S.hints=e.target.value;render();});
+$('prevLeg').addEventListener('click',()=>setLeg(-1));
+$('nextLeg').addEventListener('click',()=>setLeg(1));
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey||/SELECT|INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.key==='n'||e.key==='N'){e.preventDefault();newChallenge();}
+  else if(e.key==='ArrowRight'){e.preventDefault();setLeg(1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();setLeg(-1);}
+});
+useTuning('p6');
+newChallenge();
+})();
+</script>
+</body>
+</html>
